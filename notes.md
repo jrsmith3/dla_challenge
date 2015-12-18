@@ -1,0 +1,1 @@
+I don't really know how I'm going to structure these notes, but I need to capture them during this process.

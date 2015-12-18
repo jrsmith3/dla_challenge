@@ -56,9 +56,9 @@ Now that I'm in, I need to do a few sysadmin things.
 * [x] Prevent `apt` from clobbering `libglx.so`.
 * [x] Create a user `jrsmith3`.
 * [x] Give user `jrsmith3` sudo access.
-* [ ] Allow ssh logins via ssh keys.
-* [ ] Add my ssh key to user `jrsmith3`.
-* [ ] [Update apt and packages](http://elinux.org/Jetson_TK1#Recommended_first_steps_now_that_your_board_has_internet_access).
+* [x] Allow ssh logins via ssh keys.
+* [x] Add my ssh key to user `jrsmith3`.
+* [x] [Update apt and packages](http://elinux.org/Jetson_TK1#Recommended_first_steps_now_that_your_board_has_internet_access).
 
 
 Change `ubuntu` user password
@@ -109,3 +109,94 @@ ubuntu@tegra-ubuntu:~/NVIDIA-INSTALLER$ sudo usermod -a -G sudo jrsmith3
 ```
 
 At this point, I've logged out of the TK1 as user `ubuntu` and logged back in as `jrsmith3`.
+
+
+Allow ssh logins via ssh keys
+-----------------------------
+Maybe this feature is already set up. I will try to copy my public ssh key from gamma over to the TX1. First, I had to create an `.ssh` directory on the TX1.
+
+```
+jrsmith3@tegra-ubuntu:~$ mkdir .ssh
+```
+
+Then I use scp to copy my ssh key to the TX1.
+
+```
+gamma:$ scp -rCp ~/.ssh/id_rsa.pub jrsmith3@tegra-ubuntu:.ssh
+jrsmith3@tegra-ubuntu's password: 
+id_rsa.pub                                    100%  396     0.4KB/s   00:00
+```
+
+The ssh key is on the TX1, but logging out and logging back in I still had to enter my password.
+
+At this point I'm going to have to modify files in `/etc` and so I should probably set up `etckeeper`. To do that, I should also probably update the packages.
+
+
+Update apt and packages
+-----------------------
+Simple.
+
+```
+sudo apt-add-repository universe
+sudo apt-get update
+```
+
+I will also install `bash-completion` and `command-not-found` as suggested in the instructions.
+
+
+Install `etckeeper`, `git`, and other utils
+-------------------------------------------
+I need to modify some things in `~etc`, so I will [install `etckeeper`](https://help.ubuntu.com/lts/serverguide/etckeeper.html) as well.
+
+```
+sudo apt-get install etckeeper
+```
+
+I'm pretty sure the above pulled in `bzr` and set up `/etc` as a `bzr` repo. [I want git instead](http://evilrouters.net/2011/02/18/using-etckeeper-with-git-on-ubuntu/).
+
+```
+sudo apt-get install -y git-core
+```
+
+Configure git
+
+```
+$ git config --global user.name "Joshua Ryan Smith"
+$ git config --global user.email joshua.r.smith@gmail.com
+```
+
+After the above commands, I modified `/etc/etckeeper/etckeeper.conf` to use git. I had to unintialize `etckeeper` so that it would remove the bzr repo and use git instead.
+
+```
+$ sudo etckeeper uninit
+[sudo] password for jrsmith3: 
+** Warning: This will DESTROY all recorded history for /etc,
+** including the bzr repository.
+
+Are you sure you want to do this? [yN] y
+Proceeding..
+```
+
+Next, I initialize `etckeeper`.
+
+```
+$ sudo etckeeper init
+Initialized empty Git repository in /etc/.git/
+$ sudo etckeeper commit "Initial commit."
+```
+
+Now everything looks right.
+
+
+Allow ssh logins via ssh keys, revisited
+----------------------------------------
+[Derp](http://askubuntu.com/questions/54670/passwordless-ssh-not-working). I copied `id_rsa.pub` to the TK1, but I didn't add it to the `~/.ssh/authorized_keys` file.
+
+
+Upgrade packages
+----------------
+Simple.
+
+```
+sudo apt-get upgrade
+```

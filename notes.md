@@ -223,3 +223,17 @@ Ideas
 -----
 * Predict temperature using photos along with weather data.
 * Use a physics simulator to teach the neural net to catch a ball or something similar: http://spectrum.ieee.org/view-from-the-valley/transportation/self-driving/autonomous-vehicles-learn-by-playing-video-games
+
+
+Toy Project from NNADL
+----------------------
+After some reflection and re-reading the letter DLA sent me, I don't think there should be much of a problem just implemeting the program from NNADL. There's a chance this approach won't be acceptable to DLA. Even in that event, implementing NNADL's example is a good exercise.
+
+Here's the plan:
+
+* [ ] Email DLA and ask if implementing the example from NNADL is acceptable.
+* [ ] Implement the example from NNADL.
+
+I'm going to implement this project in the `jobapp-2015-12_deep_learning_analytics` repo as a subdirectory so that I can split it out as a subtree later.
+
+After re-reading NNADL, I can pretty much just add [the repo](https://github.com/mnielsen/neural-networks-and-deep-learning) as a submodule and execute all of the code according to the example in Ch. 1.

@@ -200,3 +200,26 @@ Simple.
 ```
 sudo apt-get upgrade
 ```
+
+
+Project
+=======
+At this point I think I've done enough systems administration and devops. I need to select a project that won't take more than about 10 hours or so.
+
+The obvious project is handwriting recognition. Frankly, I should start with that kind of project because there are enough examples documented on the internet and in some of the books I have.
+
+The downside is that I don't have a good sense of which projects are easy and which are difficult.
+
+Here are a few ideas:
+
+* Follow the handwriting example from [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/).
+* Read the rest of NNADL.
+* How hard is it to create a cat identifier?
+
+At this point I think I should create a handwriting recognition system because its sufficiently documented online. It may turn out that training this thing takes 20-100h and so I should take the path of least resistance.
+
+
+Ideas
+-----
+* Predict temperature using photos along with weather data.
+* Use a physics simulator to teach the neural net to catch a ball or something similar: http://spectrum.ieee.org/view-from-the-valley/transportation/self-driving/autonomous-vehicles-learn-by-playing-video-games

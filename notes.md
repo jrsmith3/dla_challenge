@@ -226,7 +226,7 @@ Ideas
 
 
 Toy Project from NNADL
-----------------------
+======================
 After some reflection and re-reading the letter DLA sent me, I don't think there should be much of a problem just implemeting the program from NNADL. There's a chance this approach won't be acceptable to DLA. Even in that event, implementing NNADL's example is a good exercise.
 
 Here's the plan:
@@ -237,3 +237,190 @@ Here's the plan:
 I'm going to implement this project in the `jobapp-2015-12_deep_learning_analytics` repo as a subdirectory so that I can split it out as a subtree later.
 
 After re-reading NNADL, I can pretty much just add [the repo](https://github.com/mnielsen/neural-networks-and-deep-learning) as a submodule and execute all of the code according to the example in Ch. 1.
+
+
+Results
+-------
+I've downloaded the code and I'm now executing it on gamma. I am getting results kind of slowly. It finished in around 5 minutes I think.
+
+I think the point of this exercise is that its nearly trivial to run on gamma. Can I get it to run on the TK1? To do so, I should attempt to install Continuum's Anaconda.
+
+Apparently there's a [linux installer](https://www.continuum.io/downloads#_unix).
+
+It also looks like [someone recently asked about installing Anaconda for the TK1](https://devtalk.nvidia.com/default/topic/901150/jetson-tx1/python-anaconda-on-tx1/).
+
+At this point I've downloaded the linux installer script on the TK1. I'm pretty sure there's no cost to installing this thing because everything will go into `/home/jrsmith3`. If things don't work, I think I can just delete the `~/anaconda` directory and perhaps `.bashrc` or something.
+
+To mitigate any problems, I copied `.bashrc` to `bashrc.old` and `.profile` to `profile.old`. I will now attempt to install anaconda on the TK1.
+
+```
+$ bash Anaconda2-2.4.1-Linux-x86_64.sh
+WARNING:
+    Your operating system appears not to be 64-bit, but you are trying to
+    install a 64-bit version of Anaconda2.
+    Are sure you want to continue the installation? [yes|no]
+[no] >>> 
+Aborting installation
+```
+
+So am I running a 64bit OS?
+
+I'm pretty sure this board is an [ARM Cortex-A15](https://en.wikipedia.org/wiki/ARM_Cortex-A15) which is a 32-bit processor. I think that the TK1 is this ARM Cortex-A15 because that's what the spec sheet included with the board says.
+
+
+32-bit anaconda
+---------------
+I will try again with the [most recent release of the 32-bit version of linux anaconda](https://repo.continuum.io/archive/Anaconda2-2.4.1-Linux-x86.sh). There doesn't appear to be an ARM version.
+
+Package downloaded; now to install:
+
+```
+$ bash Anaconda2-2.4.1-Linux-x86.sh
+```
+
+I had to review and agree to a license. It now looks like things are uncompressing.
+
+It looks like I get an error:
+
+```
+Anaconda2-2.4.1-Linux-x86.sh: line 445: /home/jrsmith3/anaconda2/pkgs/python-2.7.11-0/bin/python: cannot execute binary file: Exec format error
+ERROR:
+cannot execute native linux-32 binary, output from 'uname -a' is:
+Linux tegra-ubuntu 3.10.24-g6a2d13a #1 SMP PREEMPT Fri Apr 18 15:56:45 PDT 2014 armv7l armv7l armv7l GNU/Linux
+```
+
+I suspect because this anaconda is built for x86 architecture instead of arm.
+
+It looks like Continuum has an [anaconda for armv7l](https://www.continuum.io/content/conda-support-raspberry-pi-2-and-power8-le) which is also what the TK1 is:
+
+```
+$ uname -m
+armv7l
+```
+
+I will need to install miniconda, but `numpy`, `scipy`, and a few other packages have been built. I'm using the [latest armv7l](http://repo.continuum.io/miniconda/Miniconda-latest-Linux-armv7l.sh). 
+
+The md5sum matches, next to install:
+
+```
+$ bash Miniconda-latest-Linux-armv7l.sh
+```
+
+Again with the license. Miniconda will be installed at `/home/jrsmith3/miniconda`. Some unpacking. I'd expect less than anaconda. Already done. Next message:
+
+```
+installation finished.
+Do you wish the installer to prepend the Miniconda install location
+to PATH in your /home/jrsmith3/.bashrc ? [yes|no]
+[no] >>> yes
+
+Prepending PATH=/home/jrsmith3/miniconda/bin to PATH in /home/jrsmith3/.bashrc
+A backup will be made to: /home/jrsmith3/.bashrc-miniconda.bak
+
+
+For this change to become active, you have to open a new terminal.
+
+Thank you for installing Miniconda!
+```
+
+So I think its done. The installer even backed up my old `.bashrc` file. I logged out and rebooted because ubuntu said I should.
+
+Now that I have (mini)conda installed, I will attempt the NNADL example on the TK1.
+
+
+Toy project from NNADL on the TK1
+=================================
+Clone the repo
+--------------
+
+```
+$ git clone https://github.com/mnielsen/neural-networks-and-deep-learning.git
+```
+
+I had to clone over HTTPS instead of SSH because I don't have a private SSH key on this machine associated with github.
+
+
+Set up conda virtual env
+------------------------
+In the root of the cloned repo:
+
+```
+$ conda create -yp ./env python
+```
+
+Next I will install some packages into it.
+
+```
+$ conda install numpy ipython scipy -p ./env/
+```
+
+Next I will activate the environment and see what's been installed.
+
+```
+$ conda list
+# packages in environment at /home/jrsmith3/miniconda:
+#
+conda                     3.16.0                   py27_0  
+conda-env                 2.4.2                    py27_0  
+openssl                   1.0.1k                        1  
+pycosat                   0.6.1                    py27_0  
+pycrypto                  2.6.1                    py27_0  
+python                    2.7.10                        0  
+pyyaml                    3.11                     py27_1  
+requests                  2.7.0                    py27_0  
+sqlite                    3.8.4.1                       1  
+yaml                      0.1.6                         0  
+zlib                      1.2.8                         0
+
+$ source activate ./env
+discarding /home/jrsmith3/miniconda/bin from PATH
+prepending /home/jrsmith3/Documents/neural-networks-and-deep-learning/env/bin to PATH
+
+$ conda list
+# packages in environment at /home/jrsmith3/Documents/neural-networks-and-deep-learning/env:
+#
+decorator                 4.0.2                    py27_0  
+ipython                   4.0.0                    py27_0  
+ipython-genutils          0.1.0                     <pip>
+ipython_genutils          0.1.0                    py27_0  
+libgfortran               1.0                           0  
+numpy                     1.9.2                    py27_1  
+openblas                  0.2.14                        1  
+openssl                   1.0.2d                        0  
+path.py                   7.6.1                    py27_0  
+pexpect                   3.3                      py27_0  
+pickleshare               0.5                      py27_0  
+pip                       7.1.2                    py27_0  
+python                    2.7.10                        2  
+readline                  6.2                           2  
+scipy                     0.16.0               np19py27_1  
+setuptools                18.4                     py27_0  
+simplegeneric             0.8.1                    py27_0  
+sqlite                    3.8.4.1                       1  
+traitlets                 4.0.0                    py27_0  
+wheel                     0.26.0                   py27_1  
+zlib                      1.2.8                         0
+```
+
+So it looks like I have the appropriate packages.
+
+
+Running the example
+-------------------
+I've executed the commands like I did above and now I'm calling the `net.SGD` method. This TK1 computer is significantly slower than gamma. I'm sure I could speed things along if I could use the system's GPU.
+
+
+Next actions
+============
+I've now demonstrated that I can get this problem running on both gamma and the TK1. I'm pretty sure I can use the code from NNADL but I need to ask. In fact, I need to ask a few questions:
+
+* [ ] Can I use the code from NNADL?
+* [ ] Do they want me to leverage the GPU of the TK1 board?
+
+The real issue is: I need to work through an example. I now have the environment and I've worked through a canned example from NNADL.
+
+
+Time tracking
+=============
+2015-12-18: 1.5h
+2015-12-19: 2h

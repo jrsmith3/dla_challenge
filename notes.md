@@ -775,7 +775,9 @@ I uploaded the package to my "main" channel instead of the "test" channel on ana
 
 Generating the test data
 ========================
-At this point, I can generate the test data I need.
+At this point, I can generate the test data I need. I don't think I really have the energy to do much of anything else on this project, but I'm going to try to calculate at least one output for a set of inputs and build a data structure out of the result.
+
+I just found out that there's no models in this revision of the `tec` package. In order to do the project I've been trying to do, I will need to hack on the `tec` class to get the Langmuir model working again.
 
 
 Time tracking
@@ -784,5 +786,6 @@ Time tracking
 2015-12-19: 2h
 2015-12-21: 2h
 2015-12-22: 2h
+2015-12-23: 5h
 
-Running total: 7.5h
+Running total: 12.5h

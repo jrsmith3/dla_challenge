@@ -420,6 +420,364 @@ I've now demonstrated that I can get this problem running on both gamma and the 
 The real issue is: I need to work through an example. I now have the environment and I've worked through a canned example from NNADL.
 
 
+Example problem: predicting result of Langmuir model
+====================================================
+Yesterday I decided to try to train a NN to predict the maximum motive for the Langmuir model. In order to do this calculation, I have to:
+
+* [ ] Install `tec` in a conda environment.
+* [ ] Write some code to generate the training data.
+* [ ] Train and test the NN.
+
+I don't really know how this is going to work out, so I need to get through these steps as quickly as possible.
+
+
+Installing `tec` in conda env
+-----------------------------
+I've installed `tec` in the past, but I don't remember how to do it.
+
+First, does `tec` pass its tests?
+
+```
+gamma:tec jrsmith3$ source activate ./env/
+discarding /Users/jrsmith3/anaconda/bin from PATH
+prepending /Users/jrsmith3/Documents/work/tec/env/bin to PATH
+(/Users/jrsmith3/Documents/work/tec/env)gamma:tec jrsmith3$ nosetests
+.....................................................................................................................
+----------------------------------------------------------------------
+Ran 117 tests in 11.345s
+
+OK
+```
+
+Looks like it.
+
+Next, can I install this package in a conda environment? The dependencies are:
+
+* [x] python
+* [x] numpy
+* [x] scipy >=0.15.0
+* [ ] matplotlib
+* [x] astropy
+* [ ] physicalproperty
+
+Check marks in the list above indicate that the package can be installed on the TK1.
+
+I should be able to easily modify the `tec` codebase so that it doesn't depend on matplotlib. I can probably also bring `physicalproperty` in as well.
+
+Before I get too far along building this package for the TK1, I should just attempt to install `tec` in a conda env. I'm pretty sure I'm going to use the `conda build` and `conda install` commands.
+
+Instead of building `tec`, I'm going to attempt to build/install `ibei` because it has fewer dependencies and should be easier. It turns out that `ibei` still depends on `physicalproperty`.
+
+The best approach here is to build `physicalproperty` and upload it to anaconda.org with the `noarch` flag (or whatever its called).
+
+To test the build, I've upgraded `conda` and `conda-build` to their most recent versions. I'm also on branch i11 of the `physicalproperty` repo (commit fd90fb0b3c80e9b98551e2f1a7cc88981bc368c6). I should be able to build this thing locally. According to `README.rst` in the repo I simply:
+
+```
+conda build path/to/physicalproperty/conda.recipe
+```
+
+Before installing, I should search for this package in the locally build packages.
+
+That command seemed to work. It also created a directory `/Users/jrsmith3/anaconda/conda-bld/noarch`. So maybe the update fixed the problems I was having previously.
+
+Next, I installed `anaconda-client` and executed the following command to upload to anaconda.org:
+
+```
+$ anaconda upload /Users/jrsmith3/anaconda/conda-bld/noarch/physicalproperty-1.0.1-py_0.tar.bz2
+Using Anaconda Cloud api site https://api.anaconda.org
+The action you are performing requires authentication, please sign in:
+Using Anaconda Cloud api site https://api.anaconda.org
+Username: jrsmith3
+jrsmith3's Password: 
+login successful
+Using Anaconda Cloud api site https://api.anaconda.org
+detecting package type ...
+conda
+extracting package attributes for upload ...
+done
+
+Uploading file jrsmith3/physicalproperty/1.0.1/noarch/physicalproperty-1.0.1-py_0.tar.bz2 ... 
+ uploaded 9 of 9Kb: 100.00% ETA: 0.0 minutes
+
+
+Upload(s) Complete
+
+Package located at:
+https://anaconda.org/jrsmith3/physicalproperty
+```
+
+The package now appears on anaconda.org. 
+
+
+Can I install this thing in an environment on the TK1?
+------------------------------------------------------
+First, I ssh into the TK1. Then I create a dummy environment.
+
+```
+$mkdir tmp/jnk
+$cd jnk
+
+$ conda create -yp ./env python 
+Fetching package metadata: ....
+Solving package specifications: .
+Package plan for installation in environment /home/jrsmith3/tmp/jnk/env:
+
+The following NEW packages will be INSTALLED:
+
+    openssl:    1.0.2d-0     
+    pip:        7.1.2-py27_0 
+    python:     2.7.10-2     
+    readline:   6.2-2        
+    setuptools: 18.4-py27_0  
+    sqlite:     3.8.4.1-1    
+    wheel:      0.26.0-py27_1
+    zlib:       1.2.8-0      
+
+Linking packages ...
+[      COMPLETE      ]|###################################################| 100%
+#
+# To activate this environment, use:
+# $ source activate /home/jrsmith3/tmp/jnk/env
+#
+# To deactivate this environment, use:
+# $ source deactivate
+#
+
+$ source activate ./env
+```
+
+The activation step was probably unnecessary. Next, I need to attempt to install `physicalproperty` from anaconda.org. According to `physicalproperty`' s `README.rst`:
+
+```
+$ conda install -c jrsmith3 physicalproperty
+Fetching package metadata: ......
+Solving package specifications: .
+Package plan for installation in environment /home/jrsmith3/tmp/jnk/env:
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    astropy-1.0.4              |       np19py27_0         7.0 MB
+    physicalproperty-1.0.1     |             py_0           7 KB
+    ------------------------------------------------------------
+                                           Total:         7.0 MB
+
+The following NEW packages will be INSTALLED:
+
+    astropy:          1.0.4-np19py27_0
+    libgfortran:      1.0-0           
+    numpy:            1.9.2-py27_1    
+    openblas:         0.2.14-1        
+    physicalproperty: 1.0.1-py_0      
+
+Proceed ([y]/n)? 
+
+Fetching packages ...
+astropy-1.0.4- 100% |################################| Time: 0:00:02   3.13 MB/s
+physicalproper 100% |################################| Time: 0:00:00   1.07 MB/s
+Extracting packages ...
+[      COMPLETE      ]|###################################################| 100%
+Linking packages ...
+[      COMPLETE      ]|###################################################| 100%
+```
+
+Sweet. It looks like it worked!
+
+
+Closing some issues on `physicalproperty`
+-----------------------------------------
+Before moving on, I will clean up and close some issues with `physicalproperty`. As a matter of fact, I'm having some trouble with the build string and the noarch flag.
+
+Here's how I'm going to unwind this problem. I need to release version 1.0.2 of `physicalproperty`. I think I should push the `master` branch back to the `1.0.1` commit.
+
+
+`physicalproperty` 1.0.2 released
+---------------------------------
+At this point, I've released [`physicalproperty` version 1.0.2](https://github.com/jrsmith3/physicalproperty/releases/tag/1.0.2) and [posted the noarch version on anaconda.org](https://anaconda.org/jrsmith3/physicalproperty/files?version=1.0.2). I should be able to install this version on the TK1.
+
+```
+# Executed on the TK1 after creating a dummy environment 
+# similar to the example above:
+$ $ conda install -c jrsmith3 physicalproperty -p ./env 
+Fetching package metadata: ......
+Solving package specifications: .
+Package plan for installation in environment /home/jrsmith3/tmp/jnk/env:
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    physicalproperty-1.0.2     |             py_0           7 KB
+
+The following NEW packages will be INSTALLED:
+
+    astropy:          1.0.4-np19py27_0
+    libgfortran:      1.0-0           
+    numpy:            1.9.2-py27_1    
+    openblas:         0.2.14-1        
+    physicalproperty: 1.0.2-py_0      
+
+Proceed ([y]/n)? y
+
+Fetching packages ...
+physicalproper 100% |################################| Time: 0:00:00 342.70 kB/s
+Extracting packages ...
+[      COMPLETE      ]|###################################################| 100%
+Linking packages ...
+[      COMPLETE      ]|###################################################| 100%
+```
+
+It works!
+
+
+`ibei`
+======
+I will update this package as well to be installable from anaconda.org since `tec` depends on it.
+
+I modified a few things in the repo and the package built properly. However, I'm concerned that the install worked because there's a local copy of `physicalproperty`.
+
+I executed `conda clean -t` to remove the tarballs from the local cache. Lets see if I can still `conda build` this thing.
+
+It seems to work. I will attempt to upload to anaconda.org to the `test` channel.
+
+```
+$ anaconda upload -c test /Users/jrsmith3/anaconda/conda-bld/noarch/ibei-1.0.6-py_0.tar.bz2
+Using Anaconda Cloud api site https://api.anaconda.org
+detecting package type ...
+conda
+extracting package attributes for upload ...
+done
+
+Uploading file jrsmith3/ibei/1.0.6/noarch/ibei-1.0.6-py_0.tar.bz2 ... 
+ uploaded 14 of 14Kb: 100.00% ETA: 0.0 minutes
+
+
+Upload(s) Complete
+
+Package located at:
+https://anaconda.org/jrsmith3/ibei
+```
+
+Seems to work. Now I will see if I can install this package on the TK1.
+
+Before attempting to install `ibei`, I want to see if I can find it since I uploaded it to my "test" channel.
+
+```
+$ conda search -c jrsmith3/channel/test ibei
+Fetching package metadata: ......
+ibei                         1.0.6                      py_0  jrsmith3
+```
+
+It looks like its up there.        
+
+I installed the barebones conda environment again. Next, attempt to install `ibei`.
+
+```
+$ conda install -c jrsmith3/channel/test ibei -p ./env 
+Fetching package metadata: ......
+Solving package specifications: .
+Package plan for installation in environment /home/jrsmith3/tmp/jnk/env:
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    fastcache-1.0.2            |           py27_0          39 KB
+    sympy-0.7.6                |           py27_0         6.2 MB
+    ibei-1.0.6                 |             py_0          12 KB
+    ------------------------------------------------------------
+                                           Total:         6.2 MB
+
+The following NEW packages will be INSTALLED:
+
+    astropy:          1.0.4-np19py27_0
+    fastcache:        1.0.2-py27_0    
+    ibei:             1.0.6-py_0      
+    libgfortran:      1.0-0           
+    numpy:            1.9.2-py27_1    
+    openblas:         0.2.14-1        
+    physicalproperty: 1.0.1-py_0      
+    sympy:            0.7.6-py27_0    
+
+Proceed ([y]/n)? 
+
+Fetching packages ...
+fastcache-1.0. 100% |################################| Time: 0:00:00 947.01 kB/s
+sympy-0.7.6-py 100% |################################| Time: 0:00:01   3.32 MB/s
+ibei-1.0.6-py_ 100% |################################| Time: 0:00:00 703.21 kB/s
+Extracting packages ...
+[      COMPLETE      ]|###################################################| 100%
+Linking packages ...
+[      COMPLETE      ]|###################################################| 100%
+```
+
+So it looks like it managed to grab everything, including `physicalproperty`, but it got the wrong version of physicalproperty.
+
+I'm rebuilding `ibei` to see if that fixes the problem. It doesn't. Somehow I'm still installing the 1.0.1 version of physicalproperty.
+
+
+`tec`
+=====
+Now I think I can install the `tec` package. I will probably have to modify it a little bit.
+
+At this point I think I need to rip out the matplotlib functionality. Its not strictly necessary and I won't be able to install matplotlib on the TK1 since its not in the arm conda distribution.
+
+In fact, I don't think I need to rip out the matplotlib functionality, I just need to make it optional.
+
+I'm pretty sure I've modified this thing appropriately. Nope. I'm getting some errors with the `conda build` command.
+
+I think I fixed the bug. Now the tests pass during `conda build`. I will upload this thing to anaconda.org in the "test" channel and try to install it on the TK1.
+
+```
+# Upload to anaconda.org
+$ anaconda upload -c test /Users/jrsmith3/anaconda/conda-bld/noarch/tec-1.0.0.dev2-py_0.tar.bz2
+
+Using Anaconda Cloud api site https://api.anaconda.org
+detecting package type ...
+conda
+extracting package attributes for upload ...
+done
+
+Uploading file jrsmith3/tec/1.0.0.dev2/noarch/tec-1.0.0.dev2-py_0.tar.bz2 ... 
+ uploaded 24 of 24Kb: 100.00% ETA: 0.0 minutes
+
+
+Upload(s) Complete
+
+Package located at:
+https://anaconda.org/jrsmith3/tec
+```
+
+Looks good. Now to install on the TK1.
+
+```
+$ conda install -y -c jrsmith3/channel/test tec -p ./env 
+Fetching package metadata: ......
+Solving package specifications: 
+Error: Could not find some dependencies for tec: ibei
+
+You can search for this package on anaconda.org with
+
+    anaconda search -t conda ibei
+
+You may need to install the anaconda-client command line client with
+
+    conda install anaconda-client
+```
+
+For some reason it can't find `ibei`. I can probably manually install `ibei` first and then pick up `tec`. The `ibei` install worked. The `tec` install still doesn't work. It gives the same error as above.
+
+I don't understand why `ibei` will install even though it depends on `physicalproperty`, but `tec` won't install.
+
+I uploaded the package to my "main" channel instead of the "test" channel on anaconda.org, and now it works on the TK1 somehow.
+
+
+Generating the test data
+========================
+At this point, I can generate the test data I need.
+
+
 Time tracking
 =============
 2015-12-18: 1.5h

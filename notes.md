@@ -425,5 +425,6 @@ Time tracking
 2015-12-18: 1.5h
 2015-12-19: 2h
 2015-12-21: 2h
+2015-12-22: 2h
 
-Running total: 5.5h
+Running total: 7.5h

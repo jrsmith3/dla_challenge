@@ -63,7 +63,7 @@ Now that I'm in, I need to do a few sysadmin things.
 
 Change `ubuntu` user password
 -----------------------------
-I am using the [passwordstore utility]() to generate a difficult-to-guess password for this machine.
+I am using the [passwordstore utility](http://www.passwordstore.org/) to generate a difficult-to-guess password for this machine.
 
 password: U33HzPE-(.vIQJ\:3kj_
 

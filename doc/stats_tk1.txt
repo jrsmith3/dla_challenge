@@ -1,8 +1,0 @@
-Initialization time for list of Langmuir objects:
-462.069868088
-Write time of JSON formatted file:
-464.547351122
-Length of data array:
-10000
-Size of data array in memory
-87632

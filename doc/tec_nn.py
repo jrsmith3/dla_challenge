@@ -1,5 +1,8 @@
 import network
 import time
+import json
+import itertools
+import numpy as np
 
 def convert_dat(datum):
     """

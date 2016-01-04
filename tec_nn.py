@@ -48,8 +48,14 @@ with open("validation_dicts.json", "r") as f:
 training_data = [convert_dat(datum) for datum in training_data_json]
 validation_data = [convert_dat(datum) for datum in validation_data_json]
 
-net = network.Network([12, 30, 1])
+hidden_nodess = [5, 50]
+etas = [1e-2, 1., 10]
 
-start_time = time.time()
-net.SGD(training_data, 10, 10, 3.0, test_data=validation_data)
-print time.time() - start_time
+for hidden_nodes, eta in itertools.product(hidden_nodess, etas):
+    print "=" * 30
+    print "hidden nodes:", hidden_nodes
+    print "eta:", eta
+    net = network.Network([12, hidden_nodes, 1])
+    start_time = time.time()
+    net.SGD(training_data, 100, 10, 1e-3, test_data=validation_data)
+    print time.time() - start_time
